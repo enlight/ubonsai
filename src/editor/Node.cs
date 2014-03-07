@@ -46,10 +46,27 @@ namespace UBonsai.Editor
         /// </summary>
         public event NodeEventHandler NodeDirtyChanged;
 
-        public Rect Bounds { get; set; }
+        /// <summary>
+        /// The position and size of the node.
+        /// </summary>
+        public Rect Bounds
+        { 
+            get
+            {
+                return _bounds;
+            }
+            set
+            {
+                if (_bounds != value)
+                {
+                    _bounds = value;
+                    Dirty = true;
+                }
+            }
+        }
 
         /// <summary>
-        /// Indicates whether this node is currently selected.
+        /// Indicates whether the node is currently selected.
         /// </summary>
         public bool Selected
         {
@@ -68,7 +85,7 @@ namespace UBonsai.Editor
         }
 
         /// <summary>
-        /// Indicates whether this node needs to be repainted.
+        /// Indicates whether the node needs to be repainted.
         /// </summary>
         public bool Dirty
         {
@@ -88,6 +105,7 @@ namespace UBonsai.Editor
 
         private Tree _tree;
         private List<Node> _children;
+        private Rect _bounds;
         private bool _selected;
         private bool _dirty;
         //private GUIStyle _selectedStyle;
@@ -209,12 +227,20 @@ namespace UBonsai.Editor
         {
             if (e.button == 0)
             {
+                // drag the entire sub-tree rooted at this node
+                if (_children != null)
+                {
+                    foreach (var child in _children)
+                    {
+                        child.OnMouseDrag(e);
+                    }
+                }
+                
                 var oldBounds = Bounds;
                 Bounds = new Rect(
                     oldBounds.x + e.delta.x, oldBounds.y + e.delta.y,
                     oldBounds.width, oldBounds.height
                 );
-                Dirty = true;
             }
         }
 
