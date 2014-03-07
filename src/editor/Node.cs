@@ -27,18 +27,24 @@
 #endregion License
 
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 namespace UBonsai.Editor
 {
-    public delegate void NodeSelectionEventHandler(Node node);
+    public delegate void NodeEventHandler(Node node);
 
     public class Node
     {
         /// <summary>
         /// Fires whenever the node is selected or deselected.
         /// </summary>
-        public event NodeSelectionEventHandler NodeSelectionChanged;
+        public event NodeEventHandler NodeSelectionChanged;
+
+        /// <summary>
+        /// Fires whenever the value of the Dirty property of the node changes.
+        /// </summary>
+        public event NodeEventHandler NodeDirtyChanged;
 
         public Rect Bounds { get; set; }
 
@@ -61,15 +67,58 @@ namespace UBonsai.Editor
             }
         }
 
+        /// <summary>
+        /// Indicates whether this node needs to be repainted.
+        /// </summary>
+        public bool Dirty
+        {
+            get
+            {
+                return _dirty;
+            }
+            set
+            {
+                if (_dirty != value)
+                {
+                    _dirty = value;
+                    OnDirtyChanged();
+                }
+            }
+        }
+
+        private Tree _tree;
         private List<Node> _children;
         private bool _selected;
+        private bool _dirty;
         //private GUIStyle _selectedStyle;
 
-        public Node(float xMid, float yMid)
+        public Node(float xMid, float yMid, Tree tree)
         {
             float width = 100;
             float height = 100;
             Bounds = new Rect(xMid - (width * 0.5f), yMid - (height * 0.5f), 100, 100);
+            _tree = tree;
+        }
+
+        /// <summary>
+        /// Add entries to the given context menu.
+        /// This method will only be called on a node instance if that node is the one and only
+        /// selected node, and the mouse position at which the user decided to invoke the context
+        /// menu is outside the bounds of that node.
+        /// </summary>
+        /// <param name="menu">A valid reference to a context menu.</param>
+        public virtual void AddOuterContextMenuEntries(GenericMenu menu)
+        {
+            menu.AddItem(new GUIContent("Create Node"), false, _tree.CreateNode);
+        }
+
+        public void AddChild(Node node)
+        {
+            if (_children == null)
+            {
+                _children = new List<Node>();
+            }
+            _children.Add(node);
         }
 
         public void OnGUI(Event e)
@@ -78,7 +127,7 @@ namespace UBonsai.Editor
             {
                 case EventType.Repaint:
                     OnRepaint();
-                    break;
+                    return;
 
                 case EventType.ContextClick:
                     if (Bounds.Contains(e.mousePosition))
@@ -119,19 +168,22 @@ namespace UBonsai.Editor
 
         private void OnRepaint()
         {
-            /*
-            if (_selectedStyle == null)
-            {
-                _selectedStyle = new GUIStyle(GUI.skin.box);
-                _selectedStyle.border = new RectOffset(5, 5, 5, 5);
-            }
-            */
             var oldColor = GUI.color;
             if (Selected)
                 GUI.color = Color.red;
-            //GUIStyle currentStyle = Selected ? _selectedStyle : GUI.skin.box;
-            GUI.Box(Bounds, "Node Name"/*, currentStyle*/);
+            GUI.Box(Bounds, "Node Name");
             GUI.color = oldColor;
+
+            Dirty = false;
+
+            if (_children != null)
+            {
+                foreach (var child in _children)
+                {
+                    DrawEdge(Bounds, child.Bounds);
+                    child.OnRepaint();
+                }
+            }
         }
 
         protected virtual void OnContextClick()
@@ -144,14 +196,36 @@ namespace UBonsai.Editor
             {
                 NodeSelectionChanged(this);
             }
+            Dirty = true;
+        }
+
+        protected virtual void OnDirtyChanged()
+        {
+            if (NodeDirtyChanged != null)
+                NodeDirtyChanged(this);
         }
 
         protected virtual void OnMouseDrag(Event e)
         {
-            var oldBounds = Bounds;
-            Bounds = new Rect(
-                oldBounds.x + e.delta.x, oldBounds.y + e.delta.y,
-                oldBounds.width, oldBounds.height
+            if (e.button == 0)
+            {
+                var oldBounds = Bounds;
+                Bounds = new Rect(
+                    oldBounds.x + e.delta.x, oldBounds.y + e.delta.y,
+                    oldBounds.width, oldBounds.height
+                );
+                Dirty = true;
+            }
+        }
+
+        private static void DrawEdge(Rect parentBounds, Rect childBounds)
+        {
+            var edgeStart = new Vector3(parentBounds.center.x, parentBounds.yMax, 0f);
+            var edgeEnd = new Vector3(childBounds.center.x, childBounds.yMin, 0f);
+            Handles.DrawBezier(
+                edgeStart, edgeEnd,
+                edgeStart + 50f * Vector3.up, edgeEnd + 50f * Vector3.down,
+                Color.black, null, 2
             );
         }
     }

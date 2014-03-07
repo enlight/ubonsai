@@ -34,6 +34,11 @@ namespace UBonsai.Editor
 {
     public class Tree
     {
+        /// <summary>
+        /// Indicates whether this tree needs to be repainted.
+        /// </summary>
+        public bool Dirty { get; set; }
+
         private Node _rootNode;
         private Vector2 _mousePosition;
         private List<Node> _selectedNodes = new List<Node>();
@@ -49,14 +54,18 @@ namespace UBonsai.Editor
 
             switch (e.type)
             {
+                case EventType.Repaint:
+                    Dirty = false;
+                    break;
+
                 case EventType.ContextClick:
                     OnContextClick();
                     e.Use();
                     break;
 
                 case EventType.MouseDown:
-                    ClearSelection();
-                    e.Use();
+                    if (e.button == 0) // left mouse button
+                        ClearSelection();
                     break;
             }
         }
@@ -64,16 +73,34 @@ namespace UBonsai.Editor
         private void OnContextClick()
         {
             var menu = new GenericMenu();
-            menu.AddItem(new GUIContent("Create Node"), false, CreateNode);
+            if (_rootNode != null)
+            {
+                if (_selectedNodes.Count == 1)
+                {
+                    _selectedNodes[0].AddOuterContextMenuEntries(menu);
+                }
+            }
+            else
+            {
+                menu.AddItem(new GUIContent("Create Node"), false, CreateNode);
+            }
             menu.ShowAsContext();
         }
 
-        private void CreateNode()
+        public void CreateNode()
         {
             if (_rootNode == null)
             {
-                _rootNode = new Node(_mousePosition.x, _mousePosition.y);
+                _rootNode = new Node(_mousePosition.x, _mousePosition.y, this);
                 _rootNode.NodeSelectionChanged += NodeSelectionChanged;
+                _rootNode.NodeDirtyChanged += NodeDirtyChanged;
+            }
+            else if (_selectedNodes.Count == 1)
+            {
+                var node = new Node(_mousePosition.x, _mousePosition.y, this);
+                node.NodeSelectionChanged += NodeSelectionChanged;
+                node.NodeDirtyChanged += NodeDirtyChanged;
+                _selectedNodes[0].AddChild(node);
             }
         }
 
@@ -101,6 +128,12 @@ namespace UBonsai.Editor
             }
             else
                 _selectedNodes.Remove(node);
+        }
+
+        private void NodeDirtyChanged(Node node)
+        {
+            if (node.Dirty)
+                Dirty = true;
         }
     }
 }

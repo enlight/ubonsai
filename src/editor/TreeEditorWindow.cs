@@ -63,7 +63,7 @@ namespace UBonsai.Editor
                     break;
             }
 
-            if (GUI.changed)
+            if (GUI.changed || _currentTree.Dirty)
                 Repaint();
         }
 
