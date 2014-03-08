@@ -35,6 +35,7 @@ namespace UBonsai.Editor
     {
         private Tree _currentTree = new Tree();
         private Vector2 _mousePosition;
+        private bool _dragging = false;
 
         [MenuItem("Window/UBonsai Editor")]
         private static void Init()
@@ -52,9 +53,31 @@ namespace UBonsai.Editor
 
             GUI.changed = false;
 
+            switch (e.type)
+            {
+                case EventType.MouseDrag:
+                    // to achieve smooth dragging wantsMouseMove must be set,
+                    // doing so will prompt Unity to call OnGUI() more frequently
+                    if (!_dragging)
+                    {
+                        _dragging = true;
+                        wantsMouseMove = true;
+                    }
+                    // note that the event is not marked as used at this point because
+                    // the actual dragging is handled further down by the contents of
+                    // the editor window
+                    break;
+
+                case EventType.MouseUp:
+                    _dragging = false;
+                    wantsMouseMove = false;
+                    break;
+            }
+
             if (_currentTree != null)
                 _currentTree.OnGUI(e);
 
+            // handle any events that haven't been used up above
             switch (e.type)
             {
                 case EventType.ContextClick:
