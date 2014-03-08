@@ -34,7 +34,7 @@ namespace UBonsai.Editor
 {
     public delegate void NodeEventHandler(Node node);
 
-    public class Node
+    public abstract class Node
     {
         /// <summary>
         /// Fires whenever the node is selected or deselected.
@@ -104,17 +104,16 @@ namespace UBonsai.Editor
         }
 
         private Tree _tree;
-        private List<Node> _children;
         private Rect _bounds;
         private bool _selected;
         private bool _dirty;
         //private GUIStyle _selectedStyle;
 
-        public Node(float xMid, float yMid, Tree tree)
+        public Node(Vector2 midPoint, Tree tree)
         {
             float width = 100;
             float height = 100;
-            Bounds = new Rect(xMid - (width * 0.5f), yMid - (height * 0.5f), 100, 100);
+            Bounds = new Rect(midPoint.x - (width * 0.5f), midPoint.y - (height * 0.5f), 100, 100);
             _tree = tree;
         }
 
@@ -127,19 +126,9 @@ namespace UBonsai.Editor
         /// <param name="menu">A valid reference to a context menu.</param>
         public virtual void AddOuterContextMenuEntries(GenericMenu menu)
         {
-            menu.AddItem(new GUIContent("Create Node"), false, _tree.CreateNode);
         }
 
-        public void AddChild(Node node)
-        {
-            if (_children == null)
-            {
-                _children = new List<Node>();
-            }
-            _children.Add(node);
-        }
-
-        public void OnGUI(Event e)
+        public virtual void OnGUI(Event e)
         {
             switch (e.type)
             {
@@ -171,20 +160,9 @@ namespace UBonsai.Editor
                     }
                     break;
             }
-
-            if ((_children != null) && (Event.current.type != EventType.Used))
-            {
-                foreach (var child in _children)
-                {
-                    child.OnGUI(e);
-                    // if one of the nodes has used up the event there's no need to check the rest
-                    if (e.type == EventType.Used)
-                        break;
-                }
-            }
         }
 
-        private void OnRepaint()
+        public virtual void OnRepaint()
         {
             var oldColor = GUI.color;
             if (Selected)
@@ -193,22 +171,13 @@ namespace UBonsai.Editor
             GUI.color = oldColor;
 
             Dirty = false;
-
-            if (_children != null)
-            {
-                foreach (var child in _children)
-                {
-                    DrawEdge(Bounds, child.Bounds);
-                    child.OnRepaint();
-                }
-            }
         }
 
-        protected virtual void OnContextClick()
+        public virtual void OnContextClick()
         {
         }
 
-        protected virtual void OnSelectedChanged()
+        public virtual void OnSelectedChanged()
         {
             if (NodeSelectionChanged != null)
             {
@@ -217,42 +186,22 @@ namespace UBonsai.Editor
             Dirty = true;
         }
 
-        protected virtual void OnDirtyChanged()
+        public virtual void OnDirtyChanged()
         {
             if (NodeDirtyChanged != null)
                 NodeDirtyChanged(this);
         }
 
-        protected virtual void OnMouseDrag(Event e)
+        public virtual void OnMouseDrag(Event e)
         {
             if (e.button == 0)
             {
-                // drag the entire sub-tree rooted at this node
-                if (_children != null)
-                {
-                    foreach (var child in _children)
-                    {
-                        child.OnMouseDrag(e);
-                    }
-                }
-                
                 var oldBounds = Bounds;
                 Bounds = new Rect(
                     oldBounds.x + e.delta.x, oldBounds.y + e.delta.y,
                     oldBounds.width, oldBounds.height
                 );
             }
-        }
-
-        private static void DrawEdge(Rect parentBounds, Rect childBounds)
-        {
-            var edgeStart = new Vector3(parentBounds.center.x, parentBounds.yMax, 0f);
-            var edgeEnd = new Vector3(childBounds.center.x, childBounds.yMin, 0f);
-            Handles.DrawBezier(
-                edgeStart, edgeEnd,
-                edgeStart + 50f * Vector3.up, edgeEnd + 50f * Vector3.down,
-                Color.black, null, 2
-            );
         }
     }
 }

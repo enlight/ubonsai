@@ -26,6 +26,7 @@
 
 #endregion License
 
+using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -34,6 +35,9 @@ namespace UBonsai.Editor
 {
     public class Tree
     {
+        public static Type[] ControlNodeTypes;
+        public static string[] ControlNodeTypeNames;
+
         /// <summary>
         /// Indicates whether this tree needs to be repainted.
         /// </summary>
@@ -43,6 +47,25 @@ namespace UBonsai.Editor
         private Vector2 _mousePosition;
         private List<Node> _selectedNodes = new List<Node>();
         private bool _allowMultiSelect = false;
+
+        static Tree()
+        {
+            ControlNodeTypes = new Type[]
+            {
+                typeof(ParallelNode),
+                typeof(RandomNode),
+                typeof(SelectorNode),
+                typeof(SequenceNode)
+            };
+
+            ControlNodeTypeNames = new string[]
+            {
+                ParallelNode.TypeName,
+                RandomNode.TypeName,
+                SelectorNode.TypeName,
+                SequenceNode.TypeName
+            };
+        }
 
         public void OnGUI(Event e)
         {
@@ -78,29 +101,65 @@ namespace UBonsai.Editor
                 if (_selectedNodes.Count == 1)
                 {
                     _selectedNodes[0].AddOuterContextMenuEntries(menu);
+                    if (menu.GetItemCount() > 0)
+                    {
+                        menu.AddSeparator("");
+                    }
+                    for (var i = 0; i < ControlNodeTypes.Length; i++)
+                    {
+                        // TODO: add all the action nodes
+                        // ...
+                        AddNodeTypeToContextMenu(
+                            menu, "Create Control Node/" + ControlNodeTypeNames[i],
+                            ControlNodeTypes[i]
+                        );
+                        // TODO: add all the constraint nodes
+                    }
                 }
             }
             else
             {
-                menu.AddItem(new GUIContent("Create Node"), false, CreateNode);
+                for (var i = 0; i < ControlNodeTypes.Length; i++)
+                {
+                    AddNodeTypeToContextMenu(
+                        menu, "Create Control Node/" + ControlNodeTypeNames[i],
+                        ControlNodeTypes[i]
+                    );
+                }
             }
             menu.ShowAsContext();
         }
 
-        public void CreateNode()
+        private void AddNodeTypeToContextMenu(GenericMenu menu, string itemName, Type nodeType)
         {
+            menu.AddItem(
+                new GUIContent(itemName), false,
+                () =>
+                {
+                    var node = (Node)Activator.CreateInstance(nodeType, _mousePosition, this);
+                    RegisterNode(node);
+                }
+            );
+        }
+
+        private void RegisterNode(Node node)
+        {
+            node.NodeSelectionChanged += NodeSelectionChanged;
+            node.NodeDirtyChanged += NodeDirtyChanged;
+
             if (_rootNode == null)
             {
-                _rootNode = new Node(_mousePosition.x, _mousePosition.y, this);
-                _rootNode.NodeSelectionChanged += NodeSelectionChanged;
-                _rootNode.NodeDirtyChanged += NodeDirtyChanged;
+                _rootNode = node;
             }
             else if (_selectedNodes.Count == 1)
             {
-                var node = new Node(_mousePosition.x, _mousePosition.y, this);
-                node.NodeSelectionChanged += NodeSelectionChanged;
-                node.NodeDirtyChanged += NodeDirtyChanged;
-                _selectedNodes[0].AddChild(node);
+                var parentNode = _selectedNodes[0] as ControlNode;
+                if (parentNode != null)
+                    parentNode.AddChild(node);
+            }
+            else
+            {
+                throw new InvalidOperationException("Orphaned node created!");
             }
         }
 
