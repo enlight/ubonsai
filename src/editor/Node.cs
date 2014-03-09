@@ -36,6 +36,8 @@ namespace UBonsai.Editor
 
     public abstract class Node
     {
+        public const string NodeIconPath = "Assets/ubonsai/Editor/Skin/Icons/64x64/";
+
         /// <summary>
         /// Fires whenever the node is selected or deselected.
         /// </summary>
@@ -103,6 +105,16 @@ namespace UBonsai.Editor
             }
         }
 
+        public virtual Texture2D Icon
+        {
+            get { return null; }
+        }
+
+        /// <summary>
+        /// Short user defined text that will displayed next to the node icon.
+        /// </summary>
+        public string Label { get; set; }
+
         private Tree _tree;
         private Rect _bounds;
         private bool _selected;
@@ -166,8 +178,10 @@ namespace UBonsai.Editor
         {
             var oldColor = GUI.color;
             if (Selected)
+            { 
                 GUI.color = Color.red;
-            GUI.Box(Bounds, "Node Name");
+            }
+            GUI.Box(Bounds, new GUIContent("Node Name", Icon));
             GUI.color = oldColor;
 
             Dirty = false;

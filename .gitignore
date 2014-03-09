@@ -1,2 +1,5 @@
 src/editor/*.meta
 src/editor/Control Nodes/*.meta
+src/editor/Skin/*.meta
+src/editor/Skin/Icons/*.meta
+src/editor/Skin/Icons/64x64/*.meta
