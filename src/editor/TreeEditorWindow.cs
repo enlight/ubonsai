@@ -33,14 +33,28 @@ namespace UBonsai.Editor
 {
     public class TreeEditorWindow : EditorWindow
     {
+        public const int InvalidWindowID = -1;
+
         private Tree _currentTree = new Tree();
         private Vector2 _mousePosition;
         private bool _dragging = false;
+
+        private static int _nextWindowID = 0;
 
         [MenuItem("Window/UBonsai Editor")]
         private static void Init()
         {
             EditorWindow.GetWindow<TreeEditorWindow>("UBonsai");
+        }
+
+        /// <summary>
+        /// Generate a unique window ID for a GUI.Window.
+        /// The generated ID is only unique for any instances of TreeEditorWindow.
+        /// </summary>
+        /// <returns>A unique ID that can be used to create a new GUI.Window.</returns>
+        public static int GenerateWindowID()
+        {
+            return _nextWindowID++;
         }
 
         /// <summary>
@@ -74,8 +88,15 @@ namespace UBonsai.Editor
                     break;
             }
 
+            GUILayout.BeginArea(new Rect(0, 0, Screen.width, Screen.height));
+            // need this in order for the node windows to show up
+            BeginWindows();
+
             if (_currentTree != null)
                 _currentTree.OnGUI(e);
+
+            EndWindows();
+            GUILayout.EndArea();
 
             // handle any events that haven't been used up above
             switch (e.type)

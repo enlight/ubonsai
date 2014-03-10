@@ -26,7 +26,6 @@
 
 #endregion License
 
-using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -52,7 +51,7 @@ namespace UBonsai.Editor
         /// The position and size of the node.
         /// </summary>
         public Rect Bounds
-        { 
+        {
             get
             {
                 return _bounds;
@@ -115,10 +114,23 @@ namespace UBonsai.Editor
         /// </summary>
         public string Label { get; set; }
 
+        public int WindowID
+        {
+            get
+            {
+                if (_windowID == TreeEditorWindow.InvalidWindowID)
+                {
+                    _windowID = TreeEditorWindow.GenerateWindowID();
+                }
+                return _windowID;
+            }
+        }
+
         private Tree _tree;
         private Rect _bounds;
         private bool _selected;
         private bool _dirty;
+        private int _windowID = TreeEditorWindow.InvalidWindowID;
         //private GUIStyle _selectedStyle;
 
         public Node(Vector2 midPoint, Tree tree)
@@ -142,52 +154,79 @@ namespace UBonsai.Editor
 
         public virtual void OnGUI(Event e)
         {
+            var oldColor = GUI.color;
+            if (Selected)
+            {
+                GUI.color = Color.red;
+            }
+
+            _bounds = GUILayout.Window(WindowID, _bounds, ProcessWindowEvent, "Title");
+            GUI.color = oldColor;
+
             switch (e.type)
             {
                 case EventType.Repaint:
-                    OnRepaint();
-                    return;
-
-                case EventType.ContextClick:
-                    if (Bounds.Contains(e.mousePosition))
-                    {
-                        OnContextClick();
-                        e.Use();
-                    }
-                    break;
-
-                case EventType.MouseDown:
-                    if (Bounds.Contains(e.mousePosition))
-                    {
-                        Selected = true;
-                        e.Use();
-                    }
+                    Dirty = false;
                     break;
 
                 case EventType.MouseDrag:
-                    if (Selected)
+                    // The mouse drag event is handled here and not in ProcessWindowEvent
+                    // because ProcessWindowEvent only gets mouse drag events when the cursor
+                    // is over the window. However, while dragging it's quite possible for the 
+                    // window to lag behind the cursor such that the cursor leaves the bounds of
+                    // the window, as soon as that happens ProcessWindowEvent stops receiving 
+                    // mouse drag events and dragging comes to an abrupt stop. Note that
+                    // GUI.DragWindow() doesn't suffer from this issue, but we want to handle 
+                    // the mouse drag event manually so that we can drag entire sub-trees around
+                    // (obviously this could be done with GUI.DragWindow() too, but that would
+                    // require a bit more code).
+                    if (Selected && (e.button == 0))
                     {
-                        OnMouseDrag(e);
+                        MoveWindow(e.delta);
                         e.Use();
                     }
                     break;
-            }
+            }    
         }
 
-        public virtual void OnRepaint()
+        public virtual void ProcessWindowEvent(int windowID)
         {
-            var oldColor = GUI.color;
-            if (Selected)
-            { 
-                GUI.color = Color.red;
+            if (windowID != WindowID)
+            {
+                Debug.LogError("This is the not the window you're looking for!");
             }
-            GUI.Box(Bounds, new GUIContent("Node Name", Icon));
-            GUI.color = oldColor;
+            GUILayout.BeginHorizontal();
+            {
+                if (Icon != null)
+                {
+                    GUILayout.Label(Icon);
+                }
+                GUILayout.Label("Node Name");
+            }
+            GUILayout.EndHorizontal();
 
-            Dirty = false;
+            // the window only gets mouse events if the cursor is over the window,
+            // and the mouse position is relative to the top left corner of the window
+            var e = Event.current;
+            switch (e.type)
+            {
+                case EventType.ContextClick:
+                    ShowContextMenu();
+                    e.Use();
+                    break;
+
+                case EventType.MouseDown:
+                    Selected = true;
+                    e.Use();
+                    break;
+            }
+
+            // This is normally how one handles window dragging, 
+            // but in this case it's handled by MoveWindow()
+            //GUI.DragWindow();
         }
 
-        public virtual void OnContextClick()
+        public virtual void ShowContextMenu()
         {
         }
 
@@ -206,16 +245,13 @@ namespace UBonsai.Editor
                 NodeDirtyChanged(this);
         }
 
-        public virtual void OnMouseDrag(Event e)
+        public virtual void MoveWindow(Vector2 delta)
         {
-            if (e.button == 0)
-            {
-                var oldBounds = Bounds;
-                Bounds = new Rect(
-                    oldBounds.x + e.delta.x, oldBounds.y + e.delta.y,
-                    oldBounds.width, oldBounds.height
-                );
-            }
+            var oldBounds = Bounds;
+            Bounds = new Rect(
+                oldBounds.x + delta.x, oldBounds.y + delta.y,
+                oldBounds.width, oldBounds.height
+            );
         }
     }
 }

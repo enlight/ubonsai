@@ -48,16 +48,21 @@ namespace UBonsai.Editor
                 _children = new List<Node>();
             }
             _children.Add(node);
+            Dirty = true;
         }
 
         public override void OnGUI(Event e)
         {
             base.OnGUI(e);
 
-            if ((_children != null) && (Event.current.type != EventType.Used))
+            if ((_children != null) && (e.type != EventType.Used))
             {
                 foreach (var child in _children)
                 {
+                    if (e.type == EventType.Repaint)
+                    {
+                        DrawEdge(Bounds, child.Bounds);
+                    }
                     child.OnGUI(e);
                     // if one of the nodes has used up the event there's no need to check the rest
                     if (e.type == EventType.Used)
@@ -66,33 +71,16 @@ namespace UBonsai.Editor
             }
         }
 
-        public override void OnRepaint()
+        public override void MoveWindow(Vector2 delta)
         {
-            base.OnRepaint();
+            base.MoveWindow(delta);
 
+            // drag the entire sub-tree rooted at this node
             if (_children != null)
             {
                 foreach (var child in _children)
                 {
-                    DrawEdge(Bounds, child.Bounds);
-                    child.OnRepaint();
-                }
-            }
-        }
-
-        public override void OnMouseDrag(Event e)
-        {
-            base.OnMouseDrag(e);
-
-            if (e.button == 0)
-            {
-                // drag the entire sub-tree rooted at this node
-                if (_children != null)
-                {
-                    foreach (var child in _children)
-                    {
-                        child.OnMouseDrag(e);
-                    }
+                    child.MoveWindow(delta);
                 }
             }
         }
