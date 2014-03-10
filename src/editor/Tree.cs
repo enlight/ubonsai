@@ -90,6 +90,14 @@ namespace UBonsai.Editor
                     if (e.button == 0) // left mouse button
                         ClearSelection();
                     break;
+
+                case EventType.MouseDrag:
+                    if (e.button == 0)
+                    {
+                        DragSelection(e.delta);
+                    }
+                    e.Use();
+                    break;
             }
         }
 
@@ -172,6 +180,14 @@ namespace UBonsai.Editor
             for (var i = _selectedNodes.Count - 1; i >= 0; i--)
             {
                 _selectedNodes[i].Selected = false;
+            }
+        }
+
+        private void DragSelection(Vector2 delta)
+        {
+            foreach (var node in _selectedNodes)
+            {
+                node.MoveWindow(delta);
             }
         }
 

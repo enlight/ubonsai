@@ -163,30 +163,8 @@ namespace UBonsai.Editor
             _bounds = GUILayout.Window(WindowID, _bounds, ProcessWindowEvent, "Title");
             GUI.color = oldColor;
 
-            switch (e.type)
-            {
-                case EventType.Repaint:
-                    Dirty = false;
-                    break;
-
-                case EventType.MouseDrag:
-                    // The mouse drag event is handled here and not in ProcessWindowEvent
-                    // because ProcessWindowEvent only gets mouse drag events when the cursor
-                    // is over the window. However, while dragging it's quite possible for the 
-                    // window to lag behind the cursor such that the cursor leaves the bounds of
-                    // the window, as soon as that happens ProcessWindowEvent stops receiving 
-                    // mouse drag events and dragging comes to an abrupt stop. Note that
-                    // GUI.DragWindow() doesn't suffer from this issue, but we want to handle 
-                    // the mouse drag event manually so that we can drag entire sub-trees around
-                    // (obviously this could be done with GUI.DragWindow() too, but that would
-                    // require a bit more code).
-                    if (Selected && (e.button == 0))
-                    {
-                        MoveWindow(e.delta);
-                        e.Use();
-                    }
-                    break;
-            }    
+            if (e.type == EventType.Repaint)
+                Dirty = false;
         }
 
         public virtual void ProcessWindowEvent(int windowID)
