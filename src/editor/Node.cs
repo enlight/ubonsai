@@ -35,8 +35,6 @@ namespace UBonsai.Editor
 
     public abstract class Node
     {
-        public const string NodeIconPath = "Assets/ubonsai/Editor/Skin/Icons/64x64/";
-
         /// <summary>
         /// Fires whenever the node is selected or deselected.
         /// </summary>
@@ -106,7 +104,10 @@ namespace UBonsai.Editor
 
         public virtual Texture2D Icon
         {
-            get { return null; }
+            get
+            {
+                return GUISkinManager.GetNodeIcon(GetType());
+            }
         }
 
         /// <summary>
@@ -135,9 +136,9 @@ namespace UBonsai.Editor
 
         public Node(Vector2 midPoint, Tree tree)
         {
-            float width = 100;
-            float height = 100;
-            Bounds = new Rect(midPoint.x - (width * 0.5f), midPoint.y - (height * 0.5f), 100, 100);
+            float width = 50;
+            float height = 50;
+            Bounds = new Rect(midPoint.x - (width * 0.5f), midPoint.y - (height * 0.5f), width, height);
             _tree = tree;
         }
 
@@ -154,15 +155,13 @@ namespace UBonsai.Editor
 
         public virtual void OnGUI(Event e)
         {
-            var oldColor = GUI.color;
+            var style = GUI.skin.window;
             if (Selected)
             {
-                GUI.color = Color.red;
-            }
-
-            _bounds = GUILayout.Window(WindowID, _bounds, ProcessWindowEvent, "Title");
-            GUI.color = oldColor;
-
+                style = GUISkinManager.NodeWindowSelectedStyle;
+            } 
+            _bounds = GUILayout.Window(WindowID, _bounds, ProcessWindowEvent, "", style);
+            
             if (e.type == EventType.Repaint)
                 Dirty = false;
         }
@@ -177,9 +176,9 @@ namespace UBonsai.Editor
             {
                 if (Icon != null)
                 {
-                    GUILayout.Label(Icon);
+                    GUILayout.Label(Icon, GUILayout.Width(32), GUILayout.Height(32));
                 }
-                GUILayout.Label("Node Name");
+                GUILayout.Label("Node Name", GUISkinManager.NodeLabelStyle);
             }
             GUILayout.EndHorizontal();
 

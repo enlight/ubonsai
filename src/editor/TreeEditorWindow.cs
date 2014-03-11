@@ -88,6 +88,7 @@ namespace UBonsai.Editor
                     break;
             }
 
+            GUI.skin = GUISkinManager.Skin;
             GUILayout.BeginArea(new Rect(0, 0, Screen.width, Screen.height));
             // need this in order for the node windows to show up
             BeginWindows();

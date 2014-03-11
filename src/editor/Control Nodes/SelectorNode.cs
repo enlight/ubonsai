@@ -34,21 +34,6 @@ namespace UBonsai.Editor
     {
         public const string TypeName = "Selector";
 
-        public override Texture2D Icon
-        {
-            get
-            {
-                if (_icon == null)
-                {
-                    var iconPath = Node.NodeIconPath + GetType().Name + ".png";
-                    _icon = Resources.LoadAssetAtPath<Texture2D>(iconPath);
-                }
-                return _icon;
-            }
-        }
-
-        private static Texture2D _icon;
-
         public SelectorNode(Vector2 midPoint, Tree tree)
             : base(midPoint, tree)
         {
