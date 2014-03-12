@@ -26,13 +26,27 @@
 
 #endregion License
 
+using System;
 using UnityEditor;
 using UnityEngine;
 
 namespace UBonsai.Editor
 {
+    /// <summary>
+    /// A custom editor window that provides functionality to create behaviour trees.
+    /// </summary>
     public class TreeEditorWindow : EditorWindow
     {
+        public Tree CurrentTree
+        {
+            get { return _currentTree; }
+        }
+
+        /// <summary>
+        /// Raised when custom inspectors should repaint themselves.
+        /// </summary>
+        public event GenericEventHandler<TreeEditorWindow, System.EventArgs> InspectedStateChanged;
+
         public const int InvalidWindowID = -1;
 
         private Tree _currentTree = new Tree();
@@ -44,7 +58,8 @@ namespace UBonsai.Editor
         [MenuItem("Window/UBonsai Editor")]
         private static void Init()
         {
-            EditorWindow.GetWindow<TreeEditorWindow>("UBonsai");
+            var editorWindow = EditorWindow.GetWindow<TreeEditorWindow>("UBonsai");
+            editorWindow.name = "UBonsai Editor";
         }
 
         /// <summary>
@@ -55,6 +70,16 @@ namespace UBonsai.Editor
         public static int GenerateWindowID()
         {
             return _nextWindowID++;
+        }
+
+        public void OnEnable()
+        {
+            _currentTree.SelectionChanged += SelectionChanged;
+        }
+
+        public void OnDisable()
+        {
+            _currentTree.SelectionChanged -= SelectionChanged;
         }
 
         /// <summary>
@@ -109,11 +134,28 @@ namespace UBonsai.Editor
             }
 
             if (GUI.changed || _currentTree.Dirty)
+            {
                 Repaint();
+                if (InspectedStateChanged != null)
+                    InspectedStateChanged(this, System.EventArgs.Empty);
+            }
         }
 
         private void OnContextClick()
         {
+        }
+
+        public void OnFocus()
+        {
+            Selection.activeInstanceID = GetInstanceID();
+        }
+
+        private void SelectionChanged(Tree sender, EventArgs e)
+        {
+            if (sender.Selection.Count == 1)
+                name = ObjectNames.NicifyVariableName(sender.Selection[0].GetType().Name);
+            else
+                name = "UBonsai Editor";
         }
     }
 } // namespace UBonsai

@@ -28,6 +28,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using UnityEditor;
 using UnityEngine;
 
@@ -35,6 +36,8 @@ namespace UBonsai.Editor
 {
     public class Tree
     {
+        public event GenericEventHandler<Tree, EventArgs> SelectionChanged;
+
         public static Type[] ControlNodeTypes;
         public static string[] ControlNodeTypeNames;
 
@@ -42,6 +45,14 @@ namespace UBonsai.Editor
         /// Indicates whether this tree needs to be repainted.
         /// </summary>
         public bool Dirty { get; set; }
+
+        public ReadOnlyCollection<Node> Selection
+        {
+            get
+            {
+                return _selectedNodes.AsReadOnly();
+            }
+        }
 
         private Node _rootNode;
         private Vector2 _mousePosition;
@@ -202,13 +213,22 @@ namespace UBonsai.Editor
                 _selectedNodes.Add(node);
             }
             else
+            {
                 _selectedNodes.Remove(node);
+            }
+            OnSelectionChanged();
         }
 
         private void NodeDirtyChanged(Node node)
         {
             if (node.Dirty)
                 Dirty = true;
+        }
+
+        private void OnSelectionChanged()
+        {
+            if (SelectionChanged != null)
+                SelectionChanged(this, EventArgs.Empty);
         }
     }
 }

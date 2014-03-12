@@ -136,8 +136,8 @@ namespace UBonsai.Editor
 
         public Node(Vector2 midPoint, Tree tree)
         {
-            float width = 50;
-            float height = 50;
+            float width = 32;
+            float height = 32;
             Bounds = new Rect(midPoint.x - (width * 0.5f), midPoint.y - (height * 0.5f), width, height);
             _tree = tree;
         }
@@ -159,9 +159,9 @@ namespace UBonsai.Editor
             if (Selected)
             {
                 style = GUISkinManager.NodeWindowSelectedStyle;
-            } 
+            }
             _bounds = GUILayout.Window(WindowID, _bounds, ProcessWindowEvent, "", style);
-            
+
             if (e.type == EventType.Repaint)
                 Dirty = false;
         }
@@ -172,15 +172,22 @@ namespace UBonsai.Editor
             {
                 Debug.LogError("This is the not the window you're looking for!");
             }
-            GUILayout.BeginHorizontal();
+            if ((Label != null) && (Label != string.Empty))
             {
-                if (Icon != null)
+                GUILayout.BeginHorizontal();
                 {
-                    GUILayout.Label(Icon, GUILayout.Width(32), GUILayout.Height(32));
+                    if (Icon != null)
+                    {
+                        GUILayout.Label(Icon, GUILayout.Width(32), GUILayout.Height(32));
+                    }
+                    GUILayout.Label(Label, GUISkinManager.NodeLabelStyle);
                 }
-                GUILayout.Label("Node Name", GUISkinManager.NodeLabelStyle);
+                GUILayout.EndHorizontal();
             }
-            GUILayout.EndHorizontal();
+            else if (Icon != null)
+            {
+                GUILayout.Label(Icon, GUILayout.Width(32), GUILayout.Height(32));
+            }
 
             // the window only gets mouse events if the cursor is over the window,
             // and the mouse position is relative to the top left corner of the window
@@ -198,7 +205,7 @@ namespace UBonsai.Editor
                     break;
             }
 
-            // This is normally how one handles window dragging, 
+            // This is normally how one handles window dragging,
             // but in this case it's handled by MoveWindow()
             //GUI.DragWindow();
         }
