@@ -34,9 +34,9 @@ using UnityEngine;
 
 namespace UBonsai.Editor
 {
-    public class Tree
+    public class BehaviourTreeBlueprint
     {
-        public event GenericEventHandler<Tree, EventArgs> SelectionChanged;
+        public event GenericEventHandler<BehaviourTreeBlueprint, EventArgs> SelectionChanged;
 
         public static Type[] ControlNodeTypes;
         public static string[] ControlNodeTypeNames;
@@ -59,7 +59,7 @@ namespace UBonsai.Editor
         private List<Node> _selectedNodes = new List<Node>();
         private bool _allowMultiSelect = false;
 
-        static Tree()
+        static BehaviourTreeBlueprint()
         {
             ControlNodeTypes = new Type[]
             {

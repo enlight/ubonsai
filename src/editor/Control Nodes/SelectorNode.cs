@@ -34,7 +34,7 @@ namespace UBonsai.Editor
     {
         public const string TypeName = "Selector";
 
-        public SelectorNode(Vector2 midPoint, Tree tree)
+        public SelectorNode(Vector2 midPoint, BehaviourTreeBlueprint tree)
             : base(midPoint, tree)
         {
         }

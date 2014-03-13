@@ -127,14 +127,14 @@ namespace UBonsai.Editor
             }
         }
 
-        private Tree _tree;
+        private BehaviourTreeBlueprint _tree;
         private Rect _bounds;
         private bool _selected;
         private bool _dirty;
         private int _windowID = TreeEditorWindow.InvalidWindowID;
         //private GUIStyle _selectedStyle;
 
-        public Node(Vector2 midPoint, Tree tree)
+        public Node(Vector2 midPoint, BehaviourTreeBlueprint tree)
         {
             float width = 32;
             float height = 32;

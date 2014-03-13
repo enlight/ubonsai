@@ -37,7 +37,7 @@ namespace UBonsai.Editor
     /// </summary>
     public class TreeEditorWindow : EditorWindow
     {
-        public Tree CurrentTree
+        public BehaviourTreeBlueprint CurrentTree
         {
             get { return _currentTree; }
         }
@@ -49,7 +49,7 @@ namespace UBonsai.Editor
 
         public const int InvalidWindowID = -1;
 
-        private Tree _currentTree = new Tree();
+        private BehaviourTreeBlueprint _currentTree = new BehaviourTreeBlueprint();
         private Vector2 _mousePosition;
         private bool _dragging = false;
 
@@ -150,7 +150,7 @@ namespace UBonsai.Editor
             Selection.activeInstanceID = GetInstanceID();
         }
 
-        private void SelectionChanged(Tree sender, EventArgs e)
+        private void SelectionChanged(BehaviourTreeBlueprint sender, EventArgs e)
         {
             if (sender.Selection.Count == 1)
                 name = ObjectNames.NicifyVariableName(sender.Selection[0].GetType().Name);

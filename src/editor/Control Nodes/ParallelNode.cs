@@ -34,7 +34,7 @@ namespace UBonsai.Editor
     {
         public const string TypeName = "Parallel";
 
-        public ParallelNode(Vector2 midPoint, Tree tree)
+        public ParallelNode(Vector2 midPoint, BehaviourTreeBlueprint tree)
             : base(midPoint, tree)
         {
         }

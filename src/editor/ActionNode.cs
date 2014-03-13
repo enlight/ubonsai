@@ -34,7 +34,7 @@ namespace UBonsai.Editor
     {
         public const string TypeName = "Action";
 
-        public ActionNode(Vector2 midPoint, Tree tree)
+        public ActionNode(Vector2 midPoint, BehaviourTreeBlueprint tree)
             : base(midPoint, tree)
         {
         }

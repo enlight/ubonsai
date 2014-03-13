@@ -34,7 +34,7 @@ namespace UBonsai.Editor
     {
         public const string TypeName = "Constraint";
 
-        public ConstraintNode(Vector2 midPoint, Tree tree)
+        public ConstraintNode(Vector2 midPoint, BehaviourTreeBlueprint tree)
             : base(midPoint, tree)
         {
         }

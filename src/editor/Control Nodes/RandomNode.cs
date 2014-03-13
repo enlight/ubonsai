@@ -34,7 +34,7 @@ namespace UBonsai.Editor
     {
         public const string TypeName = "Random";
 
-        public RandomNode(Vector2 midPoint, Tree tree)
+        public RandomNode(Vector2 midPoint, BehaviourTreeBlueprint tree)
             : base(midPoint, tree)
         {
         }

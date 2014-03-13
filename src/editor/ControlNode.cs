@@ -36,7 +36,7 @@ namespace UBonsai.Editor
     {
         private List<Node> _children;
 
-        public ControlNode(Vector2 midPoint, Tree tree)
+        public ControlNode(Vector2 midPoint, BehaviourTreeBlueprint tree)
             : base(midPoint, tree)
         {
         }

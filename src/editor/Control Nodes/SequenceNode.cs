@@ -34,7 +34,7 @@ namespace UBonsai.Editor
     {
         public const string TypeName = "Sequence";
 
-        public SequenceNode(Vector2 midPoint, Tree tree)
+        public SequenceNode(Vector2 midPoint, BehaviourTreeBlueprint tree)
             : base(midPoint, tree)
         {
         }
