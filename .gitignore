@@ -3,3 +3,5 @@ src/editor/Control Nodes/*.meta
 src/editor/Skin/Icons.meta
 src/editor/Skin/Icons/*.meta
 src/editor/Skin/Icons/64x64/*.meta
+src/editor/Undo/*.meta
+src/editor/Commands/*.meta

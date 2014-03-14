@@ -26,6 +26,7 @@
 
 #endregion License
 
+using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -49,6 +50,19 @@ namespace UBonsai.Editor
             }
             _children.Add(node);
             Dirty = true;
+        }
+
+        public void RemoveChild(Node node)
+        {
+            if (_children != null)
+            {
+                _children.Remove(node);
+                Dirty = true;
+            }
+            else
+            {
+                throw new InvalidOperationException("Can't remove child from a node that has none.");
+            }
         }
 
         public override void OnGUI(Event e)

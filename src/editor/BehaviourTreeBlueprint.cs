@@ -29,6 +29,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using UBonsai.Editor.Commands;
 using UnityEditor;
 using UnityEngine;
 
@@ -59,6 +60,9 @@ namespace UBonsai.Editor
         private List<Node> _selectedNodes = new List<Node>();
         private bool _allowMultiSelect = false;
 
+        // TODO: Move to a more appropriate place (probably the editor window).
+        private static readonly CommandHistory _commandHistory;
+
         static BehaviourTreeBlueprint()
         {
             ControlNodeTypes = new Type[]
@@ -76,6 +80,7 @@ namespace UBonsai.Editor
                 SelectorNode.TypeName,
                 SequenceNode.TypeName
             };
+            _commandHistory = new CommandHistory();
         }
 
         public void OnGUI(Event e)
@@ -155,30 +160,47 @@ namespace UBonsai.Editor
                 new GUIContent(itemName), false,
                 () =>
                 {
-                    var node = (Node)Activator.CreateInstance(nodeType, _mousePosition, this);
-                    RegisterNode(node);
+                    var cmd = new CreateNodeCommand(nodeType, _mousePosition, this);
+                    _commandHistory.Execute(cmd);
                 }
             );
         }
 
-        private void RegisterNode(Node node)
+        internal void AttachNode(Node node, ControlNode parentNode)
         {
             node.NodeSelectionChanged += NodeSelectionChanged;
             node.NodeDirtyChanged += NodeDirtyChanged;
 
-            if (_rootNode == null)
+            if (parentNode != null)
+            {
+                parentNode.AddChild(node);
+            }
+            else if (_rootNode == null)
             {
                 _rootNode = node;
             }
-            else if (_selectedNodes.Count == 1)
+            else
             {
-                var parentNode = _selectedNodes[0] as ControlNode;
-                if (parentNode != null)
-                    parentNode.AddChild(node);
+                throw new InvalidOperationException("Can't attach orphaned node.");
+            }
+        }
+
+        internal void DetachNode(Node node, ControlNode parentNode)
+        {
+            node.NodeSelectionChanged -= NodeSelectionChanged;
+            node.NodeDirtyChanged -= NodeDirtyChanged;
+
+            if (parentNode != null)
+            {
+                parentNode.RemoveChild(node);
+            }
+            else if (_rootNode == node)
+            {
+                _rootNode = null;
             }
             else
             {
-                throw new InvalidOperationException("Orphaned node created!");
+                throw new InvalidOperationException("Can't detach orphaned node.");
             }
         }
 
