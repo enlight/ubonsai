@@ -27,6 +27,7 @@
 #endregion License
 
 using System;
+using UnityEditor;
 using UnityEngine;
 
 namespace UBonsai.Editor.Commands
@@ -37,6 +38,14 @@ namespace UBonsai.Editor.Commands
     /// </summary>
     internal class CreateNodeCommand : ICommand
     {
+        public string Name
+        {
+            get
+            {
+                return "Create " + ObjectNames.NicifyVariableName(_nodeType.Name);
+            }
+        }
+
         private Type _nodeType;
         private Vector2 _position;
         private BehaviourTreeBlueprint _tree;

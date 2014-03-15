@@ -60,7 +60,8 @@ namespace UBonsai.Editor
 
         public override void OnInspectorGUI()
         {
-            if (_editorWindow.CurrentTree.Selection.Count == 1)
+            if ((_editorWindow.CurrentTree != null)
+                && (_editorWindow.CurrentTree.Selection.Count == 1))
             {
                 // TODO: Display relevant fields for the selected node
                 EditorGUILayout.LabelField("Some help", "Some other text");

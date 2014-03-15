@@ -55,13 +55,12 @@ namespace UBonsai.Editor
             }
         }
 
+        public CommandHistory CommandHistory { get; set; }
+
         private Node _rootNode;
         private Vector2 _mousePosition;
         private List<Node> _selectedNodes = new List<Node>();
         private bool _allowMultiSelect = false;
-
-        // TODO: Move to a more appropriate place (probably the editor window).
-        private static readonly CommandHistory _commandHistory;
 
         static BehaviourTreeBlueprint()
         {
@@ -80,7 +79,6 @@ namespace UBonsai.Editor
                 SelectorNode.TypeName,
                 SequenceNode.TypeName
             };
-            _commandHistory = new CommandHistory();
         }
 
         public void OnGUI(Event e)
@@ -161,7 +159,7 @@ namespace UBonsai.Editor
                 () =>
                 {
                     var cmd = new CreateNodeCommand(nodeType, _mousePosition, this);
-                    _commandHistory.Execute(cmd);
+                    CommandHistory.Execute(cmd);
                 }
             );
         }
@@ -178,6 +176,7 @@ namespace UBonsai.Editor
             else if (_rootNode == null)
             {
                 _rootNode = node;
+                Dirty = true;
             }
             else
             {
@@ -197,6 +196,7 @@ namespace UBonsai.Editor
             else if (_rootNode == node)
             {
                 _rootNode = null;
+                Dirty = true;
             }
             else
             {

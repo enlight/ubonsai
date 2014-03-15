@@ -49,9 +49,10 @@ namespace UBonsai.Editor
 
         public const int InvalidWindowID = -1;
 
-        private BehaviourTreeBlueprint _currentTree = new BehaviourTreeBlueprint();
+        private BehaviourTreeBlueprint _currentTree;
         private Vector2 _mousePosition;
         private bool _dragging = false;
+        private CommandHistory _commandHistory;
 
         private static int _nextWindowID = 0;
 
@@ -59,7 +60,6 @@ namespace UBonsai.Editor
         private static void Init()
         {
             var editorWindow = EditorWindow.GetWindow<TreeEditorWindow>("UBonsai");
-            editorWindow.name = "UBonsai Editor";
         }
 
         /// <summary>
@@ -74,12 +74,30 @@ namespace UBonsai.Editor
 
         public void OnEnable()
         {
+            Debug.Log("TreeEditorWindow.OnEnable()");
+            name = "UBonsai Editor";
+            _commandHistory = new CommandHistory(true);
+            _currentTree = new BehaviourTreeBlueprint();
+            _currentTree.CommandHistory = _commandHistory;
+
             _currentTree.SelectionChanged += SelectionChanged;
         }
 
         public void OnDisable()
         {
-            _currentTree.SelectionChanged -= SelectionChanged;
+            Debug.Log("TreeEditorWindow.OnDisable()");
+            if (_currentTree != null)
+            {
+                _currentTree.SelectionChanged -= SelectionChanged;
+                _currentTree.CommandHistory = null;
+                _currentTree = null;
+            }
+
+            if (_commandHistory != null)
+            {
+                _commandHistory.Dispose();
+                _commandHistory = null;
+            }
         }
 
         /// <summary>
