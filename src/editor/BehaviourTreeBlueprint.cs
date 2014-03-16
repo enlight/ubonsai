@@ -186,6 +186,8 @@ namespace UBonsai.Editor
 
         internal void DetachNode(Node node, ControlNode parentNode)
         {
+            node.Selected = false;
+
             node.NodeSelectionChanged -= NodeSelectionChanged;
             node.NodeDirtyChanged -= NodeDirtyChanged;
 
