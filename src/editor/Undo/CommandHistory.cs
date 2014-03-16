@@ -33,26 +33,16 @@ using UnityEngine;
 namespace UBonsai.Editor
 {
     [Serializable]
-    public class Dummy : ScriptableObject
+    public class UndoRedoTracker : ScriptableObject
     {
+        // tracks the undo stack size in CommandHistory
         public int index;
 
         public void OnEnable()
         {
-            Debug.Log("Dummy Enabled");
+            Debug.Log("UndoRedoTracker Enabled" + GetInstanceID());
             hideFlags = HideFlags.HideAndDontSave;
-            name = "CommandHistoryDummy";
-            index = 0;
-        }
-
-        public void OnDisable()
-        {
-            Debug.Log("Dummy Disabled");
-        }
-
-        public void OnDestroy()
-        {
-            Debug.Log("Dummy Destroyed");
+            name = "UndoRedoTracker";
         }
     }
 
@@ -65,7 +55,7 @@ namespace UBonsai.Editor
         private Stack<ICommand> _undoStack = new Stack<ICommand>();
         private Stack<ICommand> _redoStack = new Stack<ICommand>();
         private UnityEditor.Undo.UndoRedoCallback _oldUndoRedoCallback = null;
-        private Dummy _dummy = null;
+        private UndoRedoTracker _tracker = null;
 
         public CommandHistory(bool hookIntoUnityEditorUndoSystem)
         {
@@ -110,35 +100,34 @@ namespace UBonsai.Editor
                 throw new InvalidOperationException("An undo/redo operation is in progress.");
             }
 
-            if (_dummy != null)
+            if (_tracker != null)
             {
-                // when Unity calls UnityEditor.Undo.PerformUndo() the dummy index will automatically
-                // revert back to the value set here
-                _dummy.index = _undoStack.Count;
-                UnityEditor.Undo.RecordObject(_dummy, command.Name);
+                // when Unity calls UnityEditor.Undo.PerformUndo() the tracker index will
+                // automatically revert back to the value set here
+                _tracker.index = _undoStack.Count;
+                UnityEditor.Undo.RecordObject(_tracker, command.Name);
             }
 
             _redoStack.Clear();
             command.Execute();
             _undoStack.Push(command);
 
-            if (_dummy != null)
+            if (_tracker != null)
             {
-                // when Unity calls UnityEditor.Undo.PerformRedo() the dummy index will automatically
-                // revert back to the value set here
-                _dummy.index = _undoStack.Count;
+                // when Unity calls UnityEditor.Undo.PerformRedo() the tracker index will
+                // automatically revert back to the value set here
+                _tracker.index = _undoStack.Count;
+                Debug.Log("RecordObject Group ID: " + UnityEditor.Undo.GetCurrentGroup());
             }
-
-            Debug.Log("RecordObject Group ID: " + UnityEditor.Undo.GetCurrentGroup());
         }
 
         private void HookIntoUnityEditorUndoSystem()
         {
-            Debug.Log("Hooking into Undo System");
-            _dummy = ScriptableObject.CreateInstance<Dummy>();
-            if (_dummy == null)
+            Debug.Log("Hooking into UnityEditor.Undo");
+            _tracker = ScriptableObject.CreateInstance<UndoRedoTracker>();
+            if (_tracker == null)
             {
-                throw new NullReferenceException("CreateInstance<Dummy>() failed!");
+                throw new NullReferenceException("CreateInstance<UndoRedoTracker>() failed!");
             }
             _oldUndoRedoCallback = UnityEditor.Undo.undoRedoPerformed;
             UnityEditor.Undo.undoRedoPerformed = UndoRedoPerformed;
@@ -146,14 +135,15 @@ namespace UBonsai.Editor
 
         private void UnhookFromUnityEditorUndoSystem()
         {
-            Debug.Log("Unhooking from Undo System");
-            if (_dummy != null)
+            Debug.Log("Unhooking from UnityEditor.Undo");
+            if (_tracker != null)
             {
                 UnityEditor.Undo.undoRedoPerformed = _oldUndoRedoCallback;
                 _oldUndoRedoCallback = null;
-                UnityEditor.Undo.ClearUndo(_dummy);
-                ScriptableObject.DestroyImmediate(_dummy);
-                _dummy = null;
+                // FIXME: This doesn't work, lets hope it'll get fixed in the near future.
+                UnityEditor.Undo.ClearUndo(_tracker);
+                ScriptableObject.DestroyImmediate(_tracker);
+                _tracker = null;
             }
             else
             {
@@ -167,28 +157,33 @@ namespace UBonsai.Editor
                 "UndoRedoPerformed"
                 + " Group ID: " + UnityEditor.Undo.GetCurrentGroup()
             );
+
+            // play nicely with everyone else
             if (_oldUndoRedoCallback != null)
             {
                 Debug.Log("Calling previous delegate.");
                 _oldUndoRedoCallback();
             }
 
-            // if dummy changed then the redo/undo relates to the command history
-            if (_dummy.index < _undoStack.Count)
+            // UnityEditor.Undo gives us just the one callback, figuring out whether we're getting
+            // a callback because of an undo or a redo of an action we care about requires a bit of
+            // trickiness. This is where the tracker object comes in, by detecting state changes in
+            // the tracker object we can deduce what Unity just did. If the tracker index doesn't
+            // match the undo stack size Unity must've performed an undo or a redo on it, otherwise
+            // Unity just modified some other object's state (which we don't care about).
+            if (_tracker.index < _undoStack.Count)
             {
-                Debug.Log("Undo Last Command: index = " + _dummy.index + " stack size = " + _undoStack.Count);
                 Undo();
             }
-            else if (_dummy.index > _undoStack.Count)
+            else if (_tracker.index > _undoStack.Count)
             {
-                Debug.Log("Redo Last Command: index = " + _dummy.index + " stack size = " + _undoStack.Count);
                 Redo();
             }
         }
 
         public void Dispose()
         {
-            if (_dummy != null)
+            if (_tracker != null)
                 UnhookFromUnityEditorUndoSystem();
         }
     }

@@ -76,7 +76,7 @@ namespace UBonsai.Editor
         {
             Debug.Log("TreeEditorWindow.OnEnable()");
             name = "UBonsai Editor";
-            _commandHistory = new CommandHistory(true);
+            _commandHistory = new CommandHistory(false);
             _currentTree = new BehaviourTreeBlueprint();
             _currentTree.CommandHistory = _commandHistory;
 
