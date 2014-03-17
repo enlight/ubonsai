@@ -68,7 +68,9 @@ namespace UBonsai.Editor
             var redoCommands = CommandHistory.RedoCommands;
             // TODO: Instead of hardcoding the height compute it using GUIStyle.CalcHeight()
             const int lineHeight = 20;
-            var outerRect = new Rect(5, 5, _bounds.width - 10, _bounds.height);
+            var outerRect = new Rect(
+                5, GUI.skin.window.padding.top, _bounds.width - 10, _bounds.height
+            );
             var innerRect = new Rect(
                 0, 0,
                 _bounds.width - 10, (undoCommands.Length + redoCommands.Length + 1) * lineHeight

@@ -155,11 +155,9 @@ namespace UBonsai.Editor
 
         public virtual void OnGUI(Event e)
         {
-            var style = GUI.skin.window;
-            if (Selected)
-            {
-                style = GUISkinManager.NodeWindowSelectedStyle;
-            }
+            var style = Selected ?
+                GUISkinManager.NodeWindowSelectedStyle : GUISkinManager.NodeWindowNormalStyle;
+
             _bounds = GUILayout.Window(WindowID, _bounds, ProcessWindowEvent, "", style);
 
             if (e.type == EventType.Repaint)

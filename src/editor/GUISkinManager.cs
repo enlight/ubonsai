@@ -71,6 +71,18 @@ namespace UBonsai.Editor
             }
         }
 
+        public static GUIStyle NodeWindowNormalStyle
+        {
+            get
+            {
+                if (Instance._nodeWindowNormalStyle == null)
+                {
+                    Instance._nodeWindowNormalStyle = Skin.GetStyle("nodeWindowNormal");
+                }
+                return Instance._nodeWindowNormalStyle;
+            }
+        }
+
         public static GUIStyle NodeWindowSelectedStyle
         {
             get
@@ -100,6 +112,7 @@ namespace UBonsai.Editor
 
         private GUISkin _skin;
         private GUIStyle _nodeLabelStyle;
+        private GUIStyle _nodeWindowNormalStyle;
         private GUIStyle _nodeWindowSelectedStyle;
         private Dictionary<System.Type, Texture2D> _nodeIcons;
 
