@@ -51,6 +51,16 @@ namespace UBonsai.Editor
     /// </summary>
     public class CommandHistory : IDisposable
     {
+        public ICommand[] UndoCommands
+        {
+            get { return _undoStack.ToArray(); }
+        }
+
+        public ICommand[] RedoCommands
+        {
+            get { return _redoStack.ToArray(); }
+        }
+
         private bool _inUndoRedo = false;
         private Stack<ICommand> _undoStack = new Stack<ICommand>();
         private Stack<ICommand> _redoStack = new Stack<ICommand>();
@@ -68,14 +78,24 @@ namespace UBonsai.Editor
         /// </summary>
         public void Undo()
         {
-            if (_undoStack.Count > 0)
+            Undo(1);
+        }
+
+        /// <summary>
+        /// Undo multiple commands.
+        /// </summary>
+        /// <param name="commandCount">Number of commands to undo.</param>
+        public void Undo(int commandCount)
+        {
+            Debug.Log("Undo: " + commandCount);
+            _inUndoRedo = true;
+            for (int i = 0; (i < commandCount) && (_undoStack.Count > 0); i++)
             {
-                _inUndoRedo = true;
                 var command = _undoStack.Pop();
                 command.Undo();
                 _redoStack.Push(command);
-                _inUndoRedo = false;
             }
+            _inUndoRedo = false;
         }
 
         /// <summary>
@@ -83,14 +103,24 @@ namespace UBonsai.Editor
         /// </summary>
         public void Redo()
         {
-            if (_redoStack.Count > 0)
+            Redo(1);
+        }
+
+        /// <summary>
+        /// Redo multiple commands.
+        /// </summary>
+        /// <param name="commandCount">Number of commands to redo.</param>
+        public void Redo(int commandCount)
+        {
+            Debug.Log("Redo: " + commandCount);
+            _inUndoRedo = true;
+            for (int i = 0; (i < commandCount) && (_redoStack.Count > 0); i++)
             {
-                _inUndoRedo = true;
                 var command = _redoStack.Pop();
                 command.Redo();
                 _undoStack.Push(command);
-                _inUndoRedo = false;
             }
+            _inUndoRedo = false;
         }
 
         public void Execute(ICommand command)

@@ -53,6 +53,7 @@ namespace UBonsai.Editor
         private Vector2 _mousePosition;
         private bool _dragging = false;
         private CommandHistory _commandHistory;
+        private CommandHistoryWindow _historyWindow;
 
         private static int _nextWindowID = 0;
 
@@ -77,6 +78,8 @@ namespace UBonsai.Editor
             Debug.Log("TreeEditorWindow.OnEnable()");
             name = "UBonsai Editor";
             _commandHistory = new CommandHistory(false);
+            _historyWindow = new CommandHistoryWindow(GenerateWindowID());
+            _historyWindow.CommandHistory = _commandHistory;
             _currentTree = new BehaviourTreeBlueprint();
             _currentTree.CommandHistory = _commandHistory;
 
@@ -91,6 +94,11 @@ namespace UBonsai.Editor
                 _currentTree.SelectionChanged -= SelectionChanged;
                 _currentTree.CommandHistory = null;
                 _currentTree = null;
+            }
+
+            if (_historyWindow != null)
+            {
+                _historyWindow = null;
             }
 
             if (_commandHistory != null)
@@ -135,6 +143,9 @@ namespace UBonsai.Editor
             GUILayout.BeginArea(new Rect(0, 0, Screen.width, Screen.height));
             // need this in order for the node windows to show up
             BeginWindows();
+
+            if (_historyWindow != null)
+                _historyWindow.OnGUI(e);
 
             if (_currentTree != null)
                 _currentTree.OnGUI(e);
