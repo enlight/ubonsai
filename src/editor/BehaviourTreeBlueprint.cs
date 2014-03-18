@@ -61,6 +61,8 @@ namespace UBonsai.Editor
         private Vector2 _mousePosition;
         private List<Node> _selectedNodes = new List<Node>();
         private bool _allowMultiSelect = false;
+        private bool _dragging = false;
+        private Vector2 _dragStartPosition;
 
         static BehaviourTreeBlueprint()
         {
@@ -108,9 +110,31 @@ namespace UBonsai.Editor
                 case EventType.MouseDrag:
                     if (e.button == 0)
                     {
+                        if (!_dragging)
+                        {
+                            _dragging = true;
+                            _dragStartPosition = _mousePosition;
+                        }
                         DragSelection(e.delta);
                     }
                     e.Use();
+                    break;
+
+                case EventType.MouseUp:
+                    if (e.button == 0)
+                    {
+                        if (_dragging)
+                        {
+                            _dragging = false;
+                            if (_selectedNodes.Count > 0)
+                            {
+                                var command = new DragNodesCommand(
+                                    _selectedNodes, _mousePosition - _dragStartPosition
+                                );
+                                CommandHistory.Execute(command);
+                            }
+                        }
+                    }
                     break;
             }
         }
