@@ -63,8 +63,7 @@ namespace UBonsai.Editor
             if ((_editorWindow.CurrentTree != null)
                 && (_editorWindow.CurrentTree.Selection.Count == 1))
             {
-                // TODO: Display relevant fields for the selected node
-                EditorGUILayout.LabelField("Some help", "Some other text");
+                _editorWindow.CurrentTree.Selection[0].OnInspectorGUI();
             }
         }
     }

@@ -125,9 +125,23 @@ namespace UBonsai.Editor
 
         public void Execute(ICommand command)
         {
+            Execute(command, false);
+        }
+
+        public void Execute(ICommand command, bool combine)
+        {
             if (_inUndoRedo)
             {
                 throw new InvalidOperationException("An undo/redo operation is in progress.");
+            }
+
+            _redoStack.Clear();
+            command.Execute();
+            if (combine && (_undoStack.Count > 0) && _undoStack.Peek().CombineWith(command))
+            {
+                // the previous command was combined with the current one so there's no
+                // need to push the current command onto the undo stack
+                return;
             }
 
             if (_tracker != null)
@@ -138,8 +152,6 @@ namespace UBonsai.Editor
                 UnityEditor.Undo.RecordObject(_tracker, command.Name);
             }
 
-            _redoStack.Clear();
-            command.Execute();
             _undoStack.Push(command);
 
             if (_tracker != null)

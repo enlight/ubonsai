@@ -26,28 +26,10 @@
 
 #endregion License
 
-namespace UBonsai.Editor
+using System;
+
+namespace UBonsai.Editor.Utility
 {
-    public interface ICommand
-    {
-        string Name { get; }
-
-        void Execute();
-
-        void Undo();
-
-        void Redo();
-
-        /// <summary>
-        /// Combine two commands into one.
-        /// Assuming command A' is the result of combining command A with command B:
-        /// - A'.Execute() must have the same effect as calling A.Execute() followed by B.Execute()
-        /// - A'.Undo() must have the same effect as calling B.Undo() followed by A.Undo()
-        /// - A'.Redo() must have the same effect as calling A.Redo() followed by B.Redo()
-        /// </summary>
-        /// <param name="otherCommand">The command to be absorbed, if the combine operation
-        /// succeeds this command should be discarded.</param>
-        /// <returns>true if the commands were combined, false otherwise.</returns>
-        bool CombineWith(ICommand otherCommand);
-    }
+    public delegate void GenericEventHandler<TSender, TEventArgs>(TSender sender, TEventArgs e)
+        where TEventArgs : EventArgs;
 }

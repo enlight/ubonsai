@@ -26,61 +26,63 @@
 
 #endregion License
 
-using System;
+using UBonsai.Editor.Utility;
 using UnityEditor;
-using UnityEngine;
 
-namespace UBonsai.Editor.Commands
+namespace UBonsai.Editor
 {
     /// <summary>
-    /// This command creates a new node and attaches it to the currently selected node,
-    /// if no node is currently selected the new node becomes the root node of the tree.
+    /// This command encapsulates a change to a single property.
     /// </summary>
-    internal class CreateNodeCommand : ICommand
+    /// <typeparam name="T">The type of the property.</typeparam>
+    public class ChangePropertyCommand<T> : ICommand
     {
         public string Name
         {
-            get
-            {
-                return "Create " + ObjectNames.NicifyVariableName(_nodeType.Name);
-            }
+            get { return _name; }
         }
 
-        private Type _nodeType;
-        private Vector2 _position;
-        private BehaviourTreeBlueprint _tree;
-        private Node _node = null;
-        private ControlNode _parentNode = null;
+        private string _name;
+        private BackingField<T> _field;
+        private T _initialValue;
+        private T _newValue;
 
-        public CreateNodeCommand(Type nodeType, Vector2 position, BehaviourTreeBlueprint tree)
+        public ChangePropertyCommand(System.Type ownerType, BackingField<T> field, T newValue)
         {
-            _nodeType = nodeType;
-            _position = position;
-            _tree = tree;
+            _name = "Change " + ObjectNames.NicifyVariableName(ownerType.Name)
+                + " " + field.PropertyName;
+            _field = field;
+            _initialValue = field.Value;
+            _newValue = newValue;
         }
 
         public void Execute()
         {
-            _node = (Node)Activator.CreateInstance(_nodeType, _position, _tree);
-            if (_tree.Selection.Count == 1)
-            {
-                _parentNode = _tree.Selection[0] as ControlNode;
-            }
-            _tree.AttachNode(_node, _parentNode);
+            _field.Value = _newValue;
         }
 
         public void Undo()
         {
-            _tree.DetachNode(_node, _parentNode);
+            _field.Value = _initialValue;
         }
 
         public void Redo()
         {
-            _tree.AttachNode(_node, _parentNode);
+            _field.Value = _newValue;
         }
 
         public bool CombineWith(ICommand otherCommand)
         {
+            // currently only changes to the same string field are merged together
+            if (_newValue is string)
+            {
+                var other = otherCommand as ChangePropertyCommand<T>;
+                if ((other != null) && (other._field == _field))
+                {
+                    _newValue = other._newValue;
+                    return true;
+                }
+            }
             return false;
         }
     }

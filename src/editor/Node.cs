@@ -26,6 +26,7 @@
 
 #endregion License
 
+using UBonsai.Editor.Utility;
 using UnityEditor;
 using UnityEngine;
 
@@ -33,7 +34,7 @@ namespace UBonsai.Editor
 {
     public delegate void NodeEventHandler(Node node);
 
-    public abstract class Node
+    public abstract class Node : PropertyChangedNotifier
     {
         /// <summary>
         /// Fires whenever the node is selected or deselected.
@@ -111,9 +112,17 @@ namespace UBonsai.Editor
         }
 
         /// <summary>
-        /// Short user defined text that will displayed next to the node icon.
+        /// Short user defined text that will be displayed next to the node icon.
         /// </summary>
-        public string Label { get; set; }
+        public string Label
+        {
+            get { return _label; }
+            set
+            {
+                SetBackingField(_label, value, _tree.CommandHistory, true);
+                Dirty = true;
+            }
+        }
 
         public int WindowID
         {
@@ -127,12 +136,20 @@ namespace UBonsai.Editor
             }
         }
 
+        public static readonly string LabelProperty;
+
         private BehaviourTreeBlueprint _tree;
         private Rect _bounds;
         private bool _selected;
         private bool _dirty;
         private int _windowID = TreeEditorWindow.InvalidWindowID;
-        //private GUIStyle _selectedStyle;
+        private BackingField<string> _label = new BackingField<string>(LabelProperty);
+
+        static Node()
+        {
+            Node node = null;
+            LabelProperty = GetPropertyName(() => node.Label);
+        }
 
         public Node(Vector2 midPoint, BehaviourTreeBlueprint tree)
         {
@@ -234,6 +251,20 @@ namespace UBonsai.Editor
                 oldBounds.x + delta.x, oldBounds.y + delta.y,
                 oldBounds.width, oldBounds.height
             );
+        }
+
+        public virtual void OnInspectorGUI()
+        {
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.BeginVertical();
+            {
+                Label = EditorGUILayout.TextField("Label", Label);
+            }
+            EditorGUILayout.EndVertical();
+            if (EditorGUI.EndChangeCheck())
+            {
+                Dirty = true;
+            }
         }
     }
 }

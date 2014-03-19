@@ -30,6 +30,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using UBonsai.Editor.Commands;
+using UBonsai.Editor.Utility;
 using UnityEditor;
 using UnityEngine;
 
@@ -66,6 +67,7 @@ namespace UBonsai.Editor
 
         static BehaviourTreeBlueprint()
         {
+            // TODO: these arrays should be filled in via reflection
             ControlNodeTypes = new Type[]
             {
                 typeof(ParallelNode),

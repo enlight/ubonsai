@@ -26,10 +26,26 @@
 
 #endregion License
 
-using System;
-
-namespace UBonsai.Editor
+namespace UBonsai.Editor.Utility
 {
-    public delegate void GenericEventHandler<TSender, TEventArgs>(TSender sender, TEventArgs e)
-        where TEventArgs : EventArgs;
+    /// <summary>
+    /// Encapsulates a backing field for a property that raises "changed" events.
+    /// See PropertyChangedNotifier.
+    /// </summary>
+    /// <typeparam name="T">The type of value the field should store.</typeparam>
+    public class BackingField<T>
+    {
+        public string PropertyName;
+        public T Value;
+
+        public BackingField(string propertyName)
+        {
+            PropertyName = propertyName;
+        }
+
+        public static implicit operator T(BackingField<T> field)
+        {
+            return field.Value;
+        }
+    }
 }

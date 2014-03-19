@@ -91,5 +91,10 @@ namespace UBonsai.Editor
                 node.MoveWindow(_delta);
             }
         }
+
+        public bool CombineWith(ICommand otherCommand)
+        {
+            return false;
+        }
     }
 }
