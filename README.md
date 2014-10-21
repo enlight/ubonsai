@@ -1,4 +1,4 @@
-#ubonsai
+#ubonsai (Terminated)
 
 A simple C# [behaviour tree](http://www.altdevblogaday.com/2011/02/24/introduction-to-behavior-trees/) library with a node based custom editor for the Unity game engine, all licensed under the MIT license.
 
